@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en"  ng-app="bartApp" ng-controller="bartController" ng-cloak>
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>Bart Browser</title>
+      <!-- Bootstrap CSS CDN -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.5/css/bootstrap-select.min.css">
+      <!-- Scrollbar Custom CSS -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous">
+      <!-- Point 5 Answer
+         browser does not allo cross site {host} interaction 
+         However, My site does not call BART api from javascript i.e. browser.
+         instead to use BART apis my javascript calls my own server and server fetches data from BART apis
+         and forwards the data to javascript frontend
+         avoiding cross origin restrictions
+         -->
+      {% load static %}
+      <!-- Our Custom CSS -->
+      <link rel="stylesheet" href="{% static "css/style2.css" %}">
+   </head>
+   <body>
+      {% verbatim %}
+      <div class="wrapper">
+         <!-- Sidebar  -->
+         <nav id="sidebar">
+            <div class="sidebar-header">
+               <h3>Bart Browser</h3>
+            </div>
+            <ul class="list-unstyled components">
+               <p>Source</p>
+               <li class="active">
+                  <select ng-model="selectedSource" onclick="sourceselect()">
+                     <option value="">Select Source</option>
+                     <option ng-repeat="t in stations.data.station" value="{{t.abbr}}">{{t.name}}</option>
+                  </select>
+                  <section ng-show="stationDetails">
+                  <h2 style="display:none">null</h2>
+                     <p>{{stationDetails.address}}, {{stationDetails.city}}, {{stationDetails.state}}</p>
+                  </section>
+                  <p>Destination</p>
+                  <select ng-model="selectedDest" onclick="destselect()">
+                     <option value="">Select Destination</option>
+                     <option ng-repeat="t in stations.data.station" value="{{t.abbr}}">{{t.name}}</option>
+                  </select>
+               </li>
+            </ul>
+            <section ng-show="trainTrips.request.trip" ng-repeat="dir in trainTrips.request.trip">
+                <h6>Fare: ${{dir['@fare']}}<span style="float:right;">{{dir['@tripTime']}} mins </span></h6>
+                <h6><i class="far fa-clock"></i> {{dir['@origTimeMin']}}<span style="float:right;">-> {{dir['@destTimeMin']}}</span></h6>
+                <hr>
+            </section>
+         </nav>
+         <!-- Page Content  -->
+         <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+               <div class="container-fluid">
+                  <button type="button" id="sidebarCollapse" class="btn btn-info">
+                  <i class="fas fa-align-left"></i>
+                  <span>Toggle Sidebar</span>
+                  </button>
+                  <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <i class="fas fa-align-justify"></i>
+                  </button>
+                  <div ng-show="isCount" class="collapse navbar-collapse" id="navbarSupportedContent">
+                     <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                           You have visited here {{counts}} times
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+            </nav>
+            <h2>Bart Browser with directions <span style="float:right; font-size: 20px;" ng-show="counter > -1">Next train leaves in {{counter}} seconds</span></h2>            
+            <div id="map" style="height:450px"></div>
+            <script>
+               var map;
+               function initMap() {
+                   map = new google.maps.Map(document.getElementById('map'), {
+                   center: {lat: 37.773972, lng:  -122.431297},
+                   zoom: 9
+                   });
+               }
+            </script>
+            <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMLYZ_-Km0idjH9mDQg8GATuvNwE1rypA&callback=initMap"
+               async defer></script>
+         </div>
+         {% endverbatim %}
+      </div>
+      <!-- jQuery CDN - Slim version (=without AJAX) -->
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
+      <!-- Popper.JS -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" crossorigin="anonymous"></script>
+      <!-- Bootstrap JS -->
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+      <!-- jQuery Custom Scroller CDN -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.5/js/bootstrap-select.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.7/angular.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-resource.min.js"></script>
+      <script src="{% static "js/main.js"  %}" ></script>
+      <script>
+         $(document).ready(function () {
+             $("#sidebar").mCustomScrollbar({
+                 theme: "minimal"
+             });
+         
+             $('#sidebarCollapse').on('click', function () {
+                 $('#sidebar, #content').toggleClass('active');
+                 $('.collapse.in').toggleClass('in');
+                 $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+             });
+         
+             $('.selectpicker').selectpicker();
+         });
+      </script>
+      <!-- Font Awesome JS -->
+      <script  src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
+      <script  src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
+   </body>
+</html>
